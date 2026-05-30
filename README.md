@@ -1,8 +1,9 @@
 <div align="center">
-
-# 🌞 Solar & Wind Climate Analysis
-
-### NASA POWER · ARIMA + SARIMA Forecasting · Berlin vs Honolulu
+<img 
+  src="https://capsule-render.vercel.app/api?type=waving&color=0:0a1628,50:1a3a5c,100:0d2137&height=200&section=header&text=%F0%9F%8C%9E%20Solar%20%26%20Wind%20Analysis&fontSize=40&fontColor=ffffff&fontAlignY=38&desc=NASA%20POWER%20Climate%20Data%20%7C%20ARIMA%20%2B%20SARIMA%20Forecasting%20%7C%20Berlin%20vs%20Honolulu&descAlignY=60&descSize=15"
+  width="100%"
+  alt="Solar and Wind Analysis Header"
+/>
 
 [![Python](https://img.shields.io/badge/Python-3.8%2B-3776AB?style=flat-square&logo=python&logoColor=white)](https://www.python.org/)
 [![statsmodels](https://img.shields.io/badge/statsmodels-ARIMA%2FSARIMA-4C72B0?style=flat-square)](https://www.statsmodels.org/)
@@ -88,50 +89,60 @@ All data sourced from **[NASA POWER](https://power.larc.nasa.gov/)** (Prediction
 
 ## 🔬 Analysis Pipeline
 
-Each city script (`Berlin_germany.py`, `Honolulu_USA.py`) runs the same 4-stage pipeline via shared utilities in `utils.py`:
-
-```
-┌──────────────────────────────────────────────────────────────────────────┐
-│                        ANALYSIS PIPELINE                                 │
-├──────────────────────────────────────────────────────────────────────────┤
-│                                                                          │
-│  Stage 1 — Data Ingestion & Quality Control                              │
-│  ┌────────────────────────────────────────────────────────────────────┐  │
-│  │  load_dataset()          Skip 12-row NASA POWER metadata header    │  │
-│  │  summarise_missing()     Per-column NaN count + percentage report  │  │
-│  │  drop_missing()          Drop rows with any NaN; log removal count │  │
-│  │  remove_outliers()       Z-score filter |z| > 3.0 across all       │  │
-│  │                          numeric columns simultaneously            │  │
-│  └────────────────────────────────────────────────────────────────────┘  │
-│                 ↓                                                        │
-│  Stage 2 — Exploratory Data Analysis                                     │
-│  ┌────────────────────────────────────────────────────────────────────┐  │
-│  │  plot_annual_trend()     Annual average (ANN) line plots per param │  │
-│  │  plot_monthly_trends()   12-line panel: one series per month       │  │
-│  │  plot_correlation_heatmap()  Pearson r matrix across all features  │  │
-│  └────────────────────────────────────────────────────────────────────┘  │
-│                 ↓                                                        │
-│  Stage 3 — ARIMA Forecasting                                             │
-│  ┌────────────────────────────────────────────────────────────────────┐  │
-│  │  arima_forecast()        order=(5,1,0) · 10-year horizon           │  │
-│  │                          Fits on ANN column per PARAMETER          │  │
-│  └────────────────────────────────────────────────────────────────────┘  │
-│                 ↓                                                        │
-│  Stage 4 — SARIMA Forecasting                                            │
-│  ┌────────────────────────────────────────────────────────────────────┐  │
-│  │  sarima_forecast()       order=(1,1,1) seasonal=(1,1,1,12)         │  │
-│  │                          10-year horizon + 95% confidence bands    │  │
-│  └────────────────────────────────────────────────────────────────────┘  │
-│                 ↓                                                        │
-│  Stage 5 — Cross-City Comparison                                         │
-│  ┌────────────────────────────────────────────────────────────────────┐  │
-│  │  compare_cities.py       Side-by-side parameter comparison         │  │
-│  │                          Berlin vs Honolulu across all parameters  │  │
-│  └────────────────────────────────────────────────────────────────────┘  │
-└──────────────────────────────────────────────────────────────────────────┘
-```
+Each city script (`Berlin_germany.py`, `Honolulu_USA.py`) runs the same **5-stage pipeline** via shared utilities in `utils.py`:
 
 ---
+
+### Stage 1 — 📥 Data Ingestion & Quality Control
+
+| Function | Description |
+|---|---|
+| `load_dataset()` | Skip 12-row NASA POWER metadata header |
+| `summarise_missing()` | Per-column NaN count + percentage report |
+| `drop_missing()` | Drop rows with any NaN; log removal count |
+| `remove_outliers()` | Z-score filter \|z\| > 3.0 across all numeric columns |
+
+---
+
+### Stage 2 — 📊 Exploratory Data Analysis
+
+| Function | Description |
+|---|---|
+| `plot_annual_trend()` | Annual average (ANN) line plots per parameter |
+| `plot_monthly_trends()` | 12-line panel: one series per month |
+| `plot_correlation_heatmap()` | Pearson r matrix across all features |
+
+---
+
+### Stage 3 — 📈 ARIMA Forecasting
+
+| Function | Description |
+|---|---|
+| `arima_forecast()` | `order=(5,1,0)` · 10-year horizon · Fits on ANN column per parameter |
+
+---
+
+### Stage 4 — 📉 SARIMA Forecasting
+
+| Function | Description |
+|---|---|
+| `sarima_forecast()` | `order=(1,1,1)` `seasonal=(1,1,1,12)` · 10-year horizon + 95% confidence bands |
+
+---
+
+### Stage 5 — 🌍 Cross-City Comparison
+
+| Script | Description |
+|---|---|
+| `compare_cities.py` | Side-by-side Berlin vs Honolulu comparison across all parameters |
+
+---
+
+> **Pipeline Flow:**
+> ```
+> Data Ingestion → EDA → ARIMA → SARIMA → Cross-City Comparison
+>      Stage 1   →  2  →   3   →    4   →       Stage 5
+> ```
 
 ## 📈 Forecasting Models
 
@@ -375,7 +386,7 @@ See `requirements.txt` for pinned versions.
 ---
 
 <div align="center">
-
+<img src="https://capsule-render.vercel.app/api?type=waving&color=0:0d2137,50:1a3a5c,100:0a1628&height=100&section=footer" width="100%"/>
 **Built with 🌞 NASA POWER · 📈 statsmodels · 🐼 Pandas · 📊 Matplotlib · 🌍 Berlin & Honolulu**
 
 *Understanding climate to build a cleaner energy future.*
