@@ -1,4 +1,6 @@
-<div align="center">
+can you fix some minor issues in this whole read me 
+
+"<div align="center">
 <img 
   src="https://capsule-render.vercel.app/api?type=waving&color=0:0a1628,50:1a3a5c,100:0d2137&height=200&section=header&text=%F0%9F%8C%9E%20Solar%20%26%20Wind%20Analysis&fontSize=40&fontColor=ffffff&fontAlignY=38&desc=NASA%20POWER%20Climate%20Data%20%7C%20ARIMA%20%2B%20SARIMA%20Forecasting%20%7C%20Berlin%20vs%20Honolulu&descAlignY=60&descSize=15"
   width="100%"
@@ -394,3 +396,4 @@ See `requirements.txt` for pinned versions.
 [![GitHub](https://img.shields.io/badge/GitHub-AIMLDS7-181717?style=flat-square&logo=github)](https://github.com/AIMLDS7)
 
 </div>
+"
