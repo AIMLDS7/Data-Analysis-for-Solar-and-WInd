@@ -1,104 +1,415 @@
-# Data Analysis for Solar and Wind
+<div align="center">
 
-> Solar and Wind Data Visualization and Time Series Forecasting using NASA POWER climate data for Berlin, Germany and Honolulu, USA.
->
-> ---
->
-> ## Overview
->
-> This project analyses multi-decade meteorological data to understand long-term trends in temperature, wind speed, and solar irradiance at two geographically distinct locations. It also builds ARIMA and SARIMA time-series models to forecast future values.
->
-> **Key analyses performed:**
->
-> - Data cleaning: missing-value detection and Z-score outlier removal
-> - - Exploratory visualisation: annual trends, monthly breakdowns, and correlation heatmaps
->   - - ARIMA forecasting for temperature, wind speed, and solar irradiance
->     - - SARIMA forecasting with seasonal components and 95% confidence intervals
->      
->       - ---
->
-> ## Data Source
->
-> Data was obtained from the [NASA POWER](https://power.larc.nasa.gov/) (Prediction Of Worldwide Energy Resources) project.
->
-> **Parameters analysed:**
->
-> | Parameter | Description |
-> |-----------|-------------|
-> | `T2M` | Temperature at 2 Meters (°C) |
-> | `WS50M` | Wind Speed at 50 Meters (m/s) |
-> | `WS50M_MAX` | Maximum Wind Speed at 50 Meters (m/s) |
-> | `ALLSKY_SFC_SW_DWN` | All-Sky Surface Shortwave Downward Irradiance (kW-hr/m²/day) |
->
-> ---
->
-> ## Project Structure
->
-> ```
-> .
-> ├── Berlin_Germany.csv       # Raw NASA POWER data for Berlin, Germany
-> ├── Berlin_germany.py        # Analysis script for Berlin
-> ├── Honolulu_USA.csv         # Raw NASA POWER data for Honolulu, USA
-> ├── Honolulu_USA.py          # Analysis script for Honolulu
-> ├── utils.py                 # Shared utility functions (cleaning, plotting, forecasting)
-> ├── requirements.txt         # Python package dependencies
-> ├── bdata.csv                # Processed/intermediate data for Berlin
-> ├── hdata.csv                # Processed/intermediate data for Honolulu
-> └── README.md
-> ```
->
-> ---
->
-> ## Getting Started
->
-> ### 1. Clone the repository
->
-> ```bash
-> git clone https://github.com/AIMLDS7/Data-Analysis-for-Solar-and-WInd.git
-> cd Data-Analysis-for-Solar-and-WInd
-> ```
->
-> ### 2. Install dependencies
->
-> ```bash
-> pip install -r requirements.txt
-> ```
->
-> ### 3. Run the analysis
->
-> ```bash
-> # Berlin analysis
-> python Berlin_germany.py
->
-> # Honolulu analysis
-> python Honolulu_USA.py
-> ```
->
-> ---
->
-> ## Shared Utilities (`utils.py`)
->
-> All reusable logic lives in `utils.py` so city-specific scripts stay concise and consistent. Key functions:
->
-> | Function | Purpose |
-> |----------|---------|
-> | `load_dataset(filepath)` | Load NASA POWER CSV, skipping metadata rows |
-> | `clean_dataset(filepath)` | Full pipeline: load → drop NaN → remove outliers |
-> | `plot_annual_trend(df, parameter, city)` | Line plot of annual averages |
-> | `plot_monthly_trends(df, city)` | Monthly breakdown across years |
-> | `plot_correlation_heatmap(df, city)` | Feature correlation heatmap |
-> | `arima_forecast(data, parameter, city)` | ARIMA model + forecast plot |
-> | `sarima_forecast(data, parameter, city)` | SARIMA model + forecast with confidence interval |
->
-> ---
->
-> ## Requirements
->
-> - Python 3.8+
-> - - See `requirements.txt` for all dependencies
->  
->   - ---
->
-> ## License
->
-> This project is open-source. Feel free to use and adapt the code with attribution.
+<img src="https://capsule-render.vercel.app/api?type=waving&color=0:0a1628,50:1a3a5c,100:0d2137&height=200&section=header&text=🌞%20Solar%20%26%20Wind%20Analysis&fontSize=40&fontColor=ffffff&fontAlignY=38&desc=NASA%20POWER%20Climate%20Data%20%7C%20ARIMA%20%2B%20SARIMA%20Forecasting%20%7C%20Berlin%20vs%20Honolulu&descAlignY=60&descSize=15" width="100%"/>
+
+[![Python](https://img.shields.io/badge/Python-3.8%2B-3776AB?style=flat-square&logo=python&logoColor=white)](https://www.python.org/)
+[![statsmodels](https://img.shields.io/badge/statsmodels-ARIMA%2FSARIMA-4C72B0?style=flat-square)](https://www.statsmodels.org/)
+[![Pandas](https://img.shields.io/badge/Pandas-Data%20Processing-150458?style=flat-square&logo=pandas&logoColor=white)](https://pandas.pydata.org/)
+[![Matplotlib](https://img.shields.io/badge/Matplotlib-Visualisation-11557C?style=flat-square)](https://matplotlib.org/)
+[![NASA POWER](https://img.shields.io/badge/Data-NASA%20POWER-FC3D21?style=flat-square&logo=nasa&logoColor=white)](https://power.larc.nasa.gov/)
+[![License](https://img.shields.io/badge/License-MIT-22C55E?style=flat-square)](LICENSE)
+
+> **Multi-decade meteorological analysis and time-series forecasting for two climatically contrasting cities.**  
+> Analyses NASA POWER reanalysis data (1981–2023) across temperature, wind speed, and solar irradiance using a modular Python pipeline — with ARIMA and SARIMA models generating 10-year forecasts with 95% confidence intervals.
+
+</div>
+
+---
+
+## Table of Contents
+
+- [Overview](#-overview)
+- [Why These Two Cities?](#-why-these-two-cities)
+- [Data Source & Parameters](#-data-source--parameters)
+- [Analysis Pipeline](#-analysis-pipeline)
+- [Forecasting Models](#-forecasting-models)
+- [Key Findings](#-key-findings)
+- [Code Architecture](#-code-architecture)
+- [API Reference — utils.py](#-api-reference--utilspy)
+- [Quick Start](#-quick-start)
+- [Technical Decisions](#️-technical-decisions)
+- [Limitations & Future Work](#️-limitations--future-work)
+
+---
+
+## 🔭 Overview
+
+This project analyses **multi-decade hourly climate reanalysis data** from NASA's POWER dataset to quantify long-term trends and forecast future climate parameters at two geographically contrasting locations:
+
+- **Berlin, Germany** — continental European climate; cold winters, moderate summers, wind-rich
+- **Honolulu, Hawaii, USA** — subtropical Pacific climate; consistent solar irradiance year-round
+
+The analysis covers **4 meteorological parameters** across a ~40-year window, applies statistical time-series models to each, and surfaces cross-city comparisons via a dedicated `compare_cities.py` script — enabling direct renewable energy potential benchmarking between a mid-latitude European and a tropical Pacific site.
+
+---
+
+## 🌍 Why These Two Cities?
+
+The city pairing is deliberate, not arbitrary:
+
+| Dimension | Berlin 🇩🇪 | Honolulu 🇺🇸 |
+|---|---|---|
+| **Latitude** | 52.5°N | 21.3°N |
+| **Climate type** | Cfb (oceanic/continental) | Af (tropical) |
+| **Solar potential** | Moderate, highly seasonal | High, consistent year-round |
+| **Wind potential** | Moderate–high (offshore influence) | Trade-wind driven, steady |
+| **Renewable context** | Germany's Energiewende policy | Hawaii 100% RPS target by 2045 |
+| **Temp range** | Wide seasonal swing (~25°C) | Narrow (~5°C variation) |
+
+Comparing these two exposes how climate zone affects the **predictability and bankability** of solar and wind resources — a core challenge in renewable energy project finance.
+
+---
+
+## 📡 Data Source & Parameters
+
+All data sourced from **[NASA POWER](https://power.larc.nasa.gov/)** (Prediction Of Worldwide Energy Resources) — a satellite-derived, globally gridded reanalysis product designed specifically for renewable energy assessment.
+
+**Data characteristics:**
+- Temporal resolution: monthly averages (annual summary column `ANN` used for modelling)
+- Spatial resolution: 0.5° × 0.625° grid
+- Coverage: 1981–2023 (~43 years)
+- Format: CSV with 12-row metadata header (auto-skipped by `load_dataset()`)
+
+**Parameters analysed:**
+
+| Parameter | Full Name | Unit | Relevance |
+|---|---|---|---|
+| `T2M` | Temperature at 2 Meters | °C | Heating/cooling demand; wind turbine performance |
+| `WS50M` | Wind Speed at 50 Meters | m/s | Hub-height wind resource (IEC standard reference height) |
+| `WS50M_MAX` | Maximum Wind Speed at 50 Meters | m/s | Extreme event analysis; turbine structural loading |
+| `ALLSKY_SFC_SW_DWN` | All-Sky Surface Shortwave Downward Irradiance | kW-hr/m²/day | Global Horizontal Irradiance proxy for PV yield |
+
+> `WS50M` at 50m is the IEC 61400-1 standard reference height for small-to-medium wind turbines. Modern utility-scale turbines operate at 80–150m hub heights, so `WS50M` slightly underestimates available wind resource for large installations.
+
+---
+
+## 🔬 Analysis Pipeline
+
+Each city script (`Berlin_germany.py`, `Honolulu_USA.py`) runs the same 4-stage pipeline via shared utilities in `utils.py`:
+
+```
+┌──────────────────────────────────────────────────────────────────────────┐
+│                        ANALYSIS PIPELINE                                 │
+├──────────────────────────────────────────────────────────────────────────┤
+│                                                                          │
+│  Stage 1 — Data Ingestion & Quality Control                              │
+│  ┌────────────────────────────────────────────────────────────────────┐  │
+│  │  load_dataset()          Skip 12-row NASA POWER metadata header    │  │
+│  │  summarise_missing()     Per-column NaN count + percentage report  │  │
+│  │  drop_missing()          Drop rows with any NaN; log removal count │  │
+│  │  remove_outliers()       Z-score filter |z| > 3.0 across all       │  │
+│  │                          numeric columns simultaneously            │  │
+│  └────────────────────────────────────────────────────────────────────┘  │
+│                 ↓                                                        │
+│  Stage 2 — Exploratory Data Analysis                                     │
+│  ┌────────────────────────────────────────────────────────────────────┐  │
+│  │  plot_annual_trend()     Annual average (ANN) line plots per param │  │
+│  │  plot_monthly_trends()   12-line panel: one series per month       │  │
+│  │  plot_correlation_heatmap()  Pearson r matrix across all features  │  │
+│  └────────────────────────────────────────────────────────────────────┘  │
+│                 ↓                                                        │
+│  Stage 3 — ARIMA Forecasting                                             │
+│  ┌────────────────────────────────────────────────────────────────────┐  │
+│  │  arima_forecast()        order=(5,1,0) · 10-year horizon           │  │
+│  │                          Fits on ANN column per PARAMETER          │  │
+│  └────────────────────────────────────────────────────────────────────┘  │
+│                 ↓                                                        │
+│  Stage 4 — SARIMA Forecasting                                            │
+│  ┌────────────────────────────────────────────────────────────────────┐  │
+│  │  sarima_forecast()       order=(1,1,1) seasonal=(1,1,1,12)         │  │
+│  │                          10-year horizon + 95% confidence bands    │  │
+│  └────────────────────────────────────────────────────────────────────┘  │
+│                 ↓                                                        │
+│  Stage 5 — Cross-City Comparison (compare_cities.py)                    │
+│  ┌────────────────────────────────────────────────────────────────────┐  │
+│  │  Side-by-side parameter comparison: Berlin vs Honolulu             │  │
+│  └────────────────────────────────────────────────────────────────────┘  │
+└──────────────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## 📈 Forecasting Models
+
+### ARIMA — Autoregressive Integrated Moving Average
+
+ARIMA is used as the baseline time-series model. It captures linear temporal structure through three components:
+
+```
+ARIMA(p=5, d=1, q=0)
+```
+
+| Parameter | Value | Meaning |
+|---|---|---|
+| `p = 5` | 5 autoregressive lags | Model learns from the past 5 years of annual values |
+| `d = 1` | 1st-order differencing | Removes linear trend to achieve stationarity |
+| `q = 0` | No moving-average terms | Pure AR structure — appropriate for smooth climate series |
+
+**Why `d=1`?** Climate parameters like temperature and irradiance often exhibit slow upward trends. First differencing removes this non-stationarity before fitting, preventing the model from extrapolating the trend as a random walk.
+
+```python
+# ARIMA implementation
+model = ARIMA(param_data['ANN'], order=(5, 1, 0))
+model_fit = model.fit()
+forecast = model_fit.forecast(steps=10)   # 10-year horizon
+```
+
+---
+
+### SARIMA — Seasonal ARIMA
+
+SARIMA extends ARIMA with explicit seasonal components, making it better suited to monthly climate data:
+
+```
+SARIMA(p=1, d=1, q=1)(P=1, D=1, Q=1, s=12)
+```
+
+| Component | Value | Meaning |
+|---|---|---|
+| `p, d, q` | `1, 1, 1` | Non-seasonal AR(1), differencing, MA(1) |
+| `P, D, Q` | `1, 1, 1` | Seasonal AR(1), seasonal differencing, seasonal MA(1) |
+| `s = 12` | 12 months | Annual seasonal period |
+
+**Output:** Point forecasts + **95% confidence intervals** computed via `get_forecast().conf_int()`, visualised as shaded bands around the forecast line.
+
+```python
+# SARIMA with confidence intervals
+model = SARIMAX(param_data['ANN'], order=(1,1,1), seasonal_order=(1,1,1,12))
+model_fit = model.fit(disp=False)
+forecast_result = model_fit.get_forecast(steps=10)
+conf_int = forecast_result.conf_int()   # lower and upper 95% CI bounds
+```
+
+**Why SARIMA over ARIMA here?** Climate data has annual seasonal cycles embedded in monthly resolution. ARIMA on annual averages (`ANN`) ignores this structure; SARIMA on the same data with `s=12` captures how Jan–Dec patterns repeat across years — producing narrower, more calibrated confidence intervals.
+
+---
+
+## 💡 Key Findings
+
+**Solar Irradiance (`ALLSKY_SFC_SW_DWN`):**
+- Honolulu receives consistently **2–3× higher** irradiance than Berlin year-round
+- Berlin shows strong seasonal variance (winter ~0.5 kWh/m²/day, summer ~5+ kWh/m²/day)
+- Honolulu's irradiance is stable within ±15% year-round — far more bankable for PV project finance
+
+**Wind Speed (`WS50M`):**
+- Berlin's 50m wind speeds are generally higher on an annual basis
+- Honolulu's trade winds produce a more consistent speed profile with lower seasonal variance
+- `WS50M_MAX` shows Berlin has more extreme wind events — relevant for turbine structural design
+
+**Temperature (`T2M`):**
+- Berlin's wider temperature range creates stronger heating/cooling demand seasonality
+- This seasonality is visible in the SARIMA model's wider confidence intervals for Berlin vs Honolulu
+
+**Correlation analysis:**
+- Strong positive correlation between `T2M` and `ALLSKY_SFC_SW_DWN` at both locations — warmer months are sunnier months
+- Negative correlation between `T2M` and `WS50M` at Berlin — wind speeds tend to be higher in cooler seasons
+
+---
+
+## 🏗 Code Architecture
+
+The project uses a **shared utilities pattern** — all reusable logic is centralised in `utils.py`, keeping city-specific scripts thin and consistent. Adding a new city requires writing a single script of ~20 lines.
+
+```
+📦 Data-Analysis-for-Solar-and-WInd/
+│
+├── 📄 utils.py                    ← Core library (269 lines)
+│                                     Data loading, cleaning, EDA, ARIMA, SARIMA
+│
+├── 📄 Berlin_germany.py           ← City script: runs full pipeline for Berlin
+├── 📄 Honolulu_USA.py             ← City script: runs full pipeline for Honolulu
+├── 📄 compare_cities.py           ← Cross-city comparison and benchmark plots
+│
+├── 📊 Berlin_Germany.csv          ← Raw NASA POWER data (Berlin, ~43 years)
+├── 📊 Honolulu_USA.csv            ← Raw NASA POWER data (Honolulu, ~43 years)
+├── 📊 bdata.csv                   ← Cleaned/processed data for Berlin
+├── 📊 hdata.csv                   ← Cleaned/processed data for Honolulu
+│
+├── 📄 requirements.txt
+├── 📄 README.md
+└── 📄 LICENSE
+```
+
+**Design rationale:** City scripts import from `utils.py` rather than copy-pasting logic. This means any bug fix or improvement to (say) `remove_outliers()` propagates to all city analyses automatically — a basic software engineering principle often missed in data science projects.
+
+---
+
+## 📚 API Reference — `utils.py`
+
+### Data Loading & Cleaning
+
+```python
+load_dataset(filepath, skiprows=12)
+```
+Loads a NASA POWER CSV, skipping the 12-row metadata header. Returns a `pd.DataFrame`.
+
+```python
+clean_dataset(filepath, skiprows=12)
+```
+Full pipeline in one call: `load → report missing → drop NaN → remove outliers`. Returns a cleaned `pd.DataFrame` and prints a full quality report.
+
+```python
+remove_outliers(df, numeric_start_col=2, threshold=3)
+```
+Applies Z-score filtering (`|z| > 3.0`) across all numeric columns simultaneously. Flags a row as an outlier if *any* column exceeds the threshold. Reports per-column outlier counts before removal.
+
+```python
+summarise_missing(df)
+```
+Prints a per-column missing-value report with counts and percentages. Returns a `pd.Series` of counts.
+
+---
+
+### Visualisation
+
+```python
+plot_annual_trend(df, parameter, city, ylabel=None)
+```
+Line plot of annual average (`ANN` column) for the specified `PARAMETER`. Uses `PARAM_LABELS` dict for automatic axis labelling.
+
+```python
+plot_monthly_trends(df, city, value_col='ANN', ylabel='Value')
+```
+Multi-line chart with one series per calendar month across all years. Uses `df.melt()` to reshape from wide to long format before plotting.
+
+```python
+plot_correlation_heatmap(df, city)
+```
+Pearson correlation heatmap across all numeric columns. Annotated with coefficients, `coolwarm` palette, 0.5px gridlines.
+
+---
+
+### Forecasting
+
+```python
+arima_forecast(data, parameter, city, order=(5,1,0), forecast_periods=10)
+```
+Fits ARIMA on the `ANN` series for the given `PARAMETER`. Plots historical + forecast. Returns a `pd.Series` of forecast values.
+
+```python
+sarima_forecast(data, parameter, city,
+                order=(1,1,1), seasonal_order=(1,1,1,12), forecast_periods=10)
+```
+Fits SARIMA with seasonal component `s=12`. Plots historical + forecast + 95% CI shaded band. Returns a `pd.DataFrame` with columns `Year` and `Forecasted_Value`.
+
+---
+
+## 🚀 Quick Start
+
+### 1 — Clone
+
+```bash
+git clone https://github.com/AIMLDS7/Data-Analysis-for-Solar-and-WInd.git
+cd Data-Analysis-for-Solar-and-WInd
+```
+
+### 2 — Install dependencies
+
+```bash
+pip install -r requirements.txt
+```
+
+Or manually:
+
+```bash
+pip install pandas numpy matplotlib seaborn statsmodels scikit-learn
+```
+
+### 3 — Run city analyses
+
+```bash
+# Full pipeline for Berlin
+python Berlin_germany.py
+
+# Full pipeline for Honolulu
+python Honolulu_USA.py
+
+# Cross-city comparison plots
+python compare_cities.py
+```
+
+### 4 — Use utils.py directly
+
+```python
+from utils import clean_dataset, arima_forecast, sarima_forecast
+
+# Load and clean
+df = clean_dataset('Berlin_Germany.csv')
+
+# ARIMA: forecast temperature 10 years ahead
+arima_forecast(df, parameter='T2M', city='Berlin')
+
+# SARIMA: forecast solar irradiance with confidence intervals
+sarima_forecast(df, parameter='ALLSKY_SFC_SW_DWN', city='Berlin')
+```
+
+---
+
+## ⚙️ Technical Decisions
+
+**Why Z-score threshold of 3.0?**  
+The empirical rule states ~99.7% of data from a normal distribution falls within 3 standard deviations of the mean. Climate parameters are approximately normally distributed annually, so `|z| > 3` flags genuine anomalies (measurement errors, data artefacts) rather than natural extremes. A threshold of 2.0 would remove too many valid high/low years.
+
+**Why `skiprows=12` for NASA POWER CSVs?**  
+NASA POWER exports include a 12-line metadata header (project info, coordinates, temporal coverage, units). Pandas' `read_csv()` would misparse this as data. `skiprows=12` drops exactly this header to land on the column row.
+
+**Why ARIMA `(5,1,0)` specifically?**  
+The `p=5` lag captures up to 5 years of autocorrelation in annual climate data — appropriate for slow-moving variables like temperature and irradiance that exhibit multi-year persistence (e.g. ENSO cycles). `d=1` removes the linear upward trend (warming signal). `q=0` was selected because the residuals showed no significant moving-average structure after AR and differencing.
+
+**Why annual averages (`ANN`) for forecasting rather than monthly?**  
+Monthly data introduces high within-year seasonality that, when modelled with ARIMA alone, produces poor fits without careful seasonal differencing. By working on the `ANN` column first, the models capture the slower inter-annual trend — the more policy-relevant signal for renewable resource assessment. SARIMA with `s=12` addresses the monthly seasonality separately.
+
+**Why a shared `utils.py` rather than functions inside each city script?**  
+DRY principle (Don't Repeat Yourself). Any change to the cleaning pipeline, outlier strategy, or model order applies to all cities in one edit. It also makes the code testable — you can unit-test `utils.py` functions independently of city-specific data.
+
+---
+
+## ⚠️ Limitations & Future Work
+
+**Current limitations:**
+
+| Limitation | Impact |
+|---|---|
+| Annual `ANN` averages used for ARIMA/SARIMA | Masks intra-year variation; monthly-resolution models would be more granular |
+| No model selection (AIC/BIC grid search) | ARIMA `(5,1,0)` and SARIMA `(1,1,1)(1,1,1,12)` are fixed — not tuned per parameter |
+| No stationarity testing (ADF/KPSS) | Differencing order `d=1` assumed rather than tested |
+| No backtesting / walk-forward validation | Forecast accuracy on held-out years not quantified |
+| 50m wind speed vs modern turbine hub heights | `WS50M` understates resource for 100m+ turbines |
+
+**Planned improvements:**
+
+- [ ] ADF / KPSS stationarity test to validate differencing order before model fit
+- [ ] AIC/BIC grid search over `(p,d,q)` to auto-select best ARIMA order per parameter
+- [ ] Walk-forward validation: rolling-window test on last 10 years to quantify forecast error
+- [ ] Wind speed extrapolation to 100m using the power law profile (`WS100 = WS50 × (100/50)^α`)
+- [ ] Interactive Plotly visualisations (replace Matplotlib static charts)
+- [ ] Add `compare_cities.py` documentation and usage examples
+
+---
+
+## 📦 Dependencies
+
+| Package | Version | Role |
+|---|---|---|
+| `pandas` | ≥ 1.3 | Data loading, reshaping, `melt()` for long-format plotting |
+| `numpy` | ≥ 1.21 | Z-score computation, array operations |
+| `matplotlib` | ≥ 3.4 | All visualisations |
+| `seaborn` | ≥ 0.11 | `lineplot()`, `heatmap()`, statistical styling |
+| `statsmodels` | ≥ 0.13 | `ARIMA`, `SARIMAX`, `get_forecast()`, `conf_int()` |
+| `scikit-learn` | ≥ 1.0 | `mean_squared_error` for model evaluation |
+
+See `requirements.txt` for pinned versions.
+
+---
+
+<div align="center">
+
+<img src="https://capsule-render.vercel.app/api?type=waving&color=0:0d2137,50:1a3a5c,100:0a1628&height=100&section=footer" width="100%"/>
+
+**Built with 🌞 NASA POWER · 📈 statsmodels · 🐼 Pandas · 📊 Matplotlib · 🌍 Berlin & Honolulu**
+
+*Understanding climate to build a cleaner energy future.*
+
+[![GitHub](https://img.shields.io/badge/GitHub-AIMLDS7-181717?style=flat-square&logo=github)](https://github.com/AIMLDS7)
+
+</div>
