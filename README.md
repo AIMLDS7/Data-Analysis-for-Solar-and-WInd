@@ -16,7 +16,7 @@
 </div>
 
 ---
-<div align="center">
+
 ## Table of Contents
 
 - [Overview](#-overview)
@@ -30,7 +30,7 @@
 - [Quick Start](#-quick-start)
 - [Technical Decisions](#️-technical-decisions)
 - [Limitations & Future Work](#️-limitations--future-work)
-</div>
+
 ---
 
 ## 🔭 Overview
