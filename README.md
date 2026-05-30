@@ -1,6 +1,6 @@
 <div align="center">
-  
-<img src="https://capsule-render.vercel.app/api?type=waving&color=0:0a1628,50:1a3a5c,100:0d2137&height=200&section=header&text=%F0%9F%8C%9E%20Solar%20%26%20Wind%20Analysis&fontSize=38&fontColor=ffffff&fontAlignY=38&desc=NASA%20POWER%20Climate%20Data%20%7C%20ARIMA%20and%20SARIMA%20Forecasting%20%7C%20Berlin%20vs%20Honolulu&descAlignY=60&descSize=16" width="100%"/> </div>
+<img src="https://capsule-render.vercel.app/api?type=waving&color=0:0a1628,50:1a3a5c,100:0d2137&height=200&section=header&text=%F0%9F%8C%9E%20Solar%20and%20Wind%20Analysis&fontSize=38&fontColor=ffffff&fontAlignY=38&desc=NASA%20POWER%20Climate%20Data%20%7C%20ARIMA%20and%20SARIMA%20Forecasting%20%7C%20Berlin%20vs%20Honolulu&descAlignY=60&descSize=16" width="100%"/>
+</div>
 
 [![Python](https://img.shields.io/badge/Python-3.8%2B-3776AB?style=flat-square&logo=python&logoColor=white)](https://www.python.org/)
 [![statsmodels](https://img.shields.io/badge/statsmodels-ARIMA%2FSARIMA-4C72B0?style=flat-square)](https://www.statsmodels.org/)
